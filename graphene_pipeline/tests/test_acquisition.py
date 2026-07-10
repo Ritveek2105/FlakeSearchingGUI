@@ -1,5 +1,8 @@
 from pathlib import Path
 
+import numpy as np
+
+from pipeline_core.acquisition.amscope_camera import AmScopeCamera
 from pipeline_core.acquisition.chip_scanner import RasterScanConfig, effective_step, generate_raster_positions, tile_name
 from pipeline_core.acquisition.serial_stage import StepPosition, parse_arduino_line
 
@@ -46,3 +49,22 @@ def test_effective_step_applies_overlap_percent():
     assert effective_step(100, 40) == 60
     assert effective_step(-100, 40) == -60
 
+
+def test_decode_padded_camera_frame_crops_stride_padding():
+    width = 3
+    height = 2
+    stride = AmScopeCamera._stride_bytes(width)
+    assert stride == 12
+
+    rows = []
+    for row in range(height):
+        pixels = np.arange(row * width * 3, (row + 1) * width * 3, dtype=np.uint8)
+        padding = np.array([250, 251, 252], dtype=np.uint8)
+        rows.append(np.concatenate([pixels, padding]))
+
+    buffer = np.concatenate(rows).tobytes()
+    frame = AmScopeCamera._decode_padded_frame(buffer, width, height)
+
+    assert frame.shape == (height, width, 3)
+    assert frame[0, 0].tolist() == [0, 1, 2]
+    assert frame[1, 2].tolist() == [15, 16, 17]

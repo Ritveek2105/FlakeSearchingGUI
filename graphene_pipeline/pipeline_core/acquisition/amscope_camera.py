@@ -17,6 +17,7 @@ class AmScopeCamera:
         self.height = 0
         self.latest_frame: np.ndarray | None = None
         self._amcam = None
+        self.byte_order = "BGR"
 
     @staticmethod
     def camera_callback(event, ctx) -> None:
@@ -48,17 +49,30 @@ class AmScopeCamera:
             raise RuntimeError("No AmScope camera found.")
 
         self.hcam = amcam.Amcam.Open(cameras[0].id)
+        self.hcam.put_Option(amcam.AMCAM_OPTION_BYTEORDER, 1)
         self.width, self.height = self.hcam.get_Size()
-        bufsize = ((self.width * 24 + 31) // 32 * 4) * self.height
+        bufsize = self._stride_bytes(self.width) * self.height
         self.buf = bytes(bufsize)
         self.hcam.StartPullModeWithCallback(self.camera_callback, self)
+
+    @staticmethod
+    def _stride_bytes(width: int) -> int:
+        return ((width * 24 + 31) // 32) * 4
+
+    @classmethod
+    def _decode_padded_frame(cls, buffer: bytes, width: int, height: int) -> np.ndarray:
+        stride = cls._stride_bytes(width)
+        frame = np.frombuffer(buffer, dtype=np.uint8).reshape((height, stride))
+        return frame[:, : width * 3].reshape(height, width, 3).copy()
 
     def on_frame(self) -> None:
         try:
             self.hcam.PullImageV2(self.buf, 24, None)
-            self.latest_frame = np.frombuffer(self.buf, dtype=np.uint8).reshape(
-                (self.height, self.width, 3)
-            ).copy()
+            self.latest_frame = self._decode_padded_frame(
+                self.buf,
+                self.width,
+                self.height,
+            )
         except self._amcam.HRESULTException as exc:
             raise RuntimeError(f"Frame pull failed: hr=0x{exc.hr:x}") from exc
 
@@ -73,6 +87,8 @@ class AmScopeCamera:
     def save_frame(self, path: Path, timeout_seconds: float = 5.0) -> Path:
         frame = self.get_frame(timeout_seconds=timeout_seconds)
         path.parent.mkdir(parents=True, exist_ok=True)
+        if self.byte_order == "BGR":
+            frame = frame[:, :, ::-1]
         Image.fromarray(frame).save(path)
         return path
 
