@@ -34,6 +34,18 @@ class StitchingConfig:
 
 
 @dataclass
+class AcquisitionConfig:
+    enabled: bool = False
+    output_folder: str = ""
+    serial_port: str = "COM3"
+    baudrate: int = 115200
+    step_x: int = 0
+    step_y: int = 0
+    settle_seconds: float = 0.5
+    serpentine: bool = True
+
+
+@dataclass
 class DetectionConfig:
     #
     # Detection mode
@@ -63,6 +75,7 @@ class RunConfig:
     sample: SampleConfig = field(default_factory=SampleConfig)
     input: InputConfig = field(default_factory=InputConfig)
     stitching: StitchingConfig = field(default_factory=StitchingConfig)
+    acquisition: AcquisitionConfig = field(default_factory=AcquisitionConfig)
     detection: DetectionConfig = field(default_factory=DetectionConfig)
     publish: PublishConfig = field(default_factory=PublishConfig)
 
@@ -84,6 +97,7 @@ def load_run_config(path: Path) -> RunConfig:
         sample=SampleConfig(**data.get("sample", {})),
         input=InputConfig(**data.get("input", {})),
         stitching=StitchingConfig(**data.get("stitching", {})),
+        acquisition=AcquisitionConfig(**data.get("acquisition", {})),
         detection=DetectionConfig(**data.get("detection", {})),
         publish=PublishConfig(**data.get("publish", {})),
     )

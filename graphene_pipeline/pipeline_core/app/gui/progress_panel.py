@@ -21,6 +21,7 @@ class ProgressPanel(tk.Frame):
 
         self.stage_order = [
             "validation",
+            "stage0",
             "input",
             "stage1",
             "stage1_5",
@@ -32,6 +33,7 @@ class ProgressPanel(tk.Frame):
 
         self.stage_labels = {
             "validation": "Validation",
+            "stage0": "Stage 0: Chip Scan",
             "input": "Input Copy",
             "stage1": "Stage 1: Tile Correction",
             "stage1_5": "Stage 1.5: Stitching",

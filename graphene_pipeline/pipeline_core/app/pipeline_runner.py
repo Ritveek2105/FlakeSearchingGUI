@@ -7,6 +7,9 @@ from config import PATHS
 
 from pipeline_core.app.progress import ProgressManager
 from pipeline_core.app.stage_runner import StageRunner
+from pipeline_core.acquisition.amscope_camera import AmScopeCamera
+from pipeline_core.acquisition.chip_scanner import ChipScanner, RasterScanConfig
+from pipeline_core.acquisition.serial_stage import ArduinoStageController
 
 from pipeline_core.runtime.context import RunContext
 from pipeline_core.runtime.validator import (
@@ -49,6 +52,43 @@ class PipelineRunner:
                 item.unlink()
             elif item.is_dir():
                 shutil.rmtree(item)
+
+    def scan_raw_tiles(self) -> None:
+        acquisition = self.context.config.acquisition
+        output_dir = Path(acquisition.output_folder or self.context.config.input.raw_folder or PATHS["raw_tiles"])
+        destination = PATHS["raw_tiles"]
+        self.clear_folder(output_dir)
+        if output_dir.resolve() != destination.resolve():
+            self.clear_folder(destination)
+        scan_config = RasterScanConfig(
+            output_dir=output_dir,
+            file_pattern=self.context.config.input.raw_file_pattern,
+            grid_size_x=self.context.config.stitching.grid_size_x,
+            grid_size_y=self.context.config.stitching.grid_size_y,
+            step_x=acquisition.step_x,
+            step_y=acquisition.step_y,
+            overlap_percent=self.context.config.stitching.tile_overlap,
+            settle_seconds=acquisition.settle_seconds,
+            first_tile_index=self.context.config.stitching.first_tile_index,
+            serpentine=acquisition.serpentine,
+        )
+        with ArduinoStageController(
+            port=acquisition.serial_port,
+            baudrate=acquisition.baudrate,
+        ) as stage:
+            with AmScopeCamera() as camera:
+                records = ChipScanner(stage, camera).run(scan_config)
+        if output_dir.resolve() != destination.resolve():
+            valid_exts = {".png", ".jpg", ".jpeg", ".tif", ".tiff"}
+            for file in output_dir.iterdir():
+                if file.is_file() and file.suffix.lower() in valid_exts:
+                    shutil.copy2(file, destination / file.name)
+
+        self.progress.add(
+            "stage0",
+            "complete",
+            f"Captured {len(records)} raw tiles to {destination}",
+        )
 
     def copy_raw_tiles(self) -> None:
         raw_folder = Path(self.context.config.input.raw_folder)
@@ -104,7 +144,11 @@ class PipelineRunner:
 
         self.progress.add("validation", "complete", "Validation passed")
 
-        if not skip_copy:
+        if self.context.config.acquisition.enabled:
+            self.progress.add("stage0", "started", "Stage 0: Scan Chip")
+            self.scan_raw_tiles()
+            self.progress.add("input", "skipped", "Raw tiles acquired from microscope")
+        elif not skip_copy:
             self.copy_raw_tiles()
         else:
             self.progress.add("input", "skipped", "Using existing data/raw_tiles folder")

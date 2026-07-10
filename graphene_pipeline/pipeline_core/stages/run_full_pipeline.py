@@ -12,6 +12,7 @@ PROJECT_ROOT = PROJECT_DIR
 from pipeline_core.app.pipeline_runner import PipelineRunner
 from pipeline_core.runtime.context import RunContext
 from pipeline_core.runtime.run_config import (
+    AcquisitionConfig,
     DetectionConfig,
     InputConfig,
     PublishConfig,
@@ -48,6 +49,16 @@ def build_run_config(args: argparse.Namespace) -> RunConfig:
             grid_origin=args.grid_origin,
             first_tile_index=args.first_tile_index,
         ),
+        acquisition=AcquisitionConfig(
+            enabled=args.scan_chip,
+            output_folder=str(args.acquisition_output_folder or (args.raw_folder if args.scan_chip else "")),
+            serial_port=args.serial_port,
+            baudrate=args.baudrate,
+            step_x=args.scan_step_x,
+            step_y=args.scan_step_y,
+            settle_seconds=args.scan_settle_seconds,
+            serpentine=not args.no_serpentine,
+        ),
         detection=DetectionConfig(
             mode=args.detection_mode,
             roboflow_confidence=args.roboflow_confidence,
@@ -67,7 +78,7 @@ def main() -> None:
         description="Run the full graphene image-processing pipeline."
     )
 
-    parser.add_argument("--raw-folder", required=True, type=Path)
+    parser.add_argument("--raw-folder", type=Path, default=PROJECT_ROOT / "data" / "raw_tiles")
     parser.add_argument("--skip-copy", action="store_true")
     parser.add_argument(
         "--run-config",
@@ -92,6 +103,15 @@ def main() -> None:
 
     parser.add_argument("--raw-file-pattern", default="{p}_graphene.jpg")
     parser.add_argument("--corrected-file-pattern", default="{p}_graphene_corrected.tif")
+
+    parser.add_argument("--scan-chip", action="store_true", help="Acquire raw tiles from the microscope before running the pipeline.")
+    parser.add_argument("--acquisition-output-folder", type=Path, default=None)
+    parser.add_argument("--serial-port", default="COM3")
+    parser.add_argument("--baudrate", default=115200, type=int)
+    parser.add_argument("--scan-step-x", default=0, type=int, help="Camera field-of-view width in motor steps before overlap.")
+    parser.add_argument("--scan-step-y", default=0, type=int, help="Camera field-of-view height in motor steps before overlap.")
+    parser.add_argument("--scan-settle-seconds", default=0.5, type=float)
+    parser.add_argument("--no-serpentine", action="store_true", help="Scan each row left-to-right instead of a serpentine raster.")
 
     parser.add_argument(
         "--detection-mode",

@@ -4,6 +4,7 @@ import tkinter as tk
 from pathlib import Path
 
 from pipeline_core.runtime.run_config import (
+    AcquisitionConfig,
     DetectionConfig,
     InputConfig,
     PublishConfig,
@@ -97,6 +98,14 @@ class FormPanel(tk.Frame):
         self.grid_origin = tk.StringVar(value="UL")
         self.first_tile_index = tk.StringVar(value="1")
 
+        self.scan_chip = tk.BooleanVar(value=False)
+        self.serial_port = tk.StringVar(value="COM3")
+        self.baudrate = tk.StringVar(value="115200")
+        self.scan_step_x = tk.StringVar(value="0")
+        self.scan_step_y = tk.StringVar(value="0")
+        self.scan_settle_seconds = tk.StringVar(value="0.5")
+        self.serpentine_scan = tk.BooleanVar(value=True)
+
         self.raw_pattern = tk.StringVar(value="{p}.jpg")
         self.corrected_pattern = tk.StringVar(value="{p}_corrected.tif")
 
@@ -118,7 +127,7 @@ class FormPanel(tk.Frame):
         self.add_section(row, "Sample Information")
         row += 1
 
-        row = self.add_folder_row(row, "Raw Tile Folder", self.raw_folder)
+        row = self.add_folder_row(row, "Raw Tile Folder / Scan Save Folder", self.raw_folder)
         row = self.add_entry_row(row, "Sample Name", self.sample_name)
         row = self.add_entry_row(row, "Material Type", self.material_type)
         row = self.add_entry_row(row, "Objective", self.objective)
@@ -137,6 +146,33 @@ class FormPanel(tk.Frame):
         row = self.add_entry_row(row, "First Tile Index", self.first_tile_index)
         row = self.add_entry_row(row, "Raw File Pattern", self.raw_pattern)
         row = self.add_entry_row(row, "Corrected File Pattern", self.corrected_pattern)
+
+        self.add_section(row, "Chip Acquisition")
+        row += 1
+
+        scan_check = tk.Checkbutton(
+            self.content,
+            text="Scan chip before pipeline",
+            variable=self.scan_chip,
+            bg=PANEL,
+        )
+        scan_check.grid(row=row, column=0, columnspan=3, sticky="w", pady=3)
+        row += 1
+
+        row = self.add_entry_row(row, "Arduino Serial Port", self.serial_port)
+        row = self.add_entry_row(row, "Arduino Baudrate", self.baudrate)
+        row = self.add_entry_row(row, "Tile FOV X Steps", self.scan_step_x)
+        row = self.add_entry_row(row, "Tile FOV Y Steps", self.scan_step_y)
+        row = self.add_entry_row(row, "Settle Seconds", self.scan_settle_seconds)
+
+        serpentine_check = tk.Checkbutton(
+            self.content,
+            text="Serpentine raster scan",
+            variable=self.serpentine_scan,
+            bg=PANEL,
+        )
+        serpentine_check.grid(row=row, column=0, columnspan=3, sticky="w", pady=3)
+        row += 1
 
         self.add_section(row, "Detection Settings")
         row += 1
@@ -356,6 +392,16 @@ class FormPanel(tk.Frame):
                 grid_origin=self.grid_origin.get(),
                 first_tile_index=safe_int(self.first_tile_index.get(), 1),
             ),
+            acquisition=AcquisitionConfig(
+                enabled=bool(self.scan_chip.get()),
+                output_folder=self.raw_folder.get() if self.scan_chip.get() else "",
+                serial_port=self.serial_port.get(),
+                baudrate=safe_int(self.baudrate.get(), 115200),
+                step_x=safe_int(self.scan_step_x.get(), 0),
+                step_y=safe_int(self.scan_step_y.get(), 0),
+                settle_seconds=safe_float(self.scan_settle_seconds.get(), 0.5),
+                serpentine=bool(self.serpentine_scan.get()),
+            ),
             detection=DetectionConfig(
                 mode=self.detection_mode.get(),
                 roboflow_confidence=safe_float(self.roboflow_confidence.get(), 0.35),
@@ -387,6 +433,14 @@ class FormPanel(tk.Frame):
         self.scan_order.set(config.stitching.scan_order)
         self.grid_origin.set(config.stitching.grid_origin)
         self.first_tile_index.set(str(config.stitching.first_tile_index))
+
+        self.scan_chip.set(config.acquisition.enabled)
+        self.serial_port.set(config.acquisition.serial_port)
+        self.baudrate.set(str(config.acquisition.baudrate))
+        self.scan_step_x.set(str(config.acquisition.step_x))
+        self.scan_step_y.set(str(config.acquisition.step_y))
+        self.scan_settle_seconds.set(str(config.acquisition.settle_seconds))
+        self.serpentine_scan.set(config.acquisition.serpentine)
 
         self.detection_mode.set(config.detection.mode)
         self.roboflow_confidence.set(str(config.detection.roboflow_confidence))
