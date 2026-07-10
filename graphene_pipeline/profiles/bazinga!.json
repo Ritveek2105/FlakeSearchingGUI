@@ -1,0 +1,33 @@
+{
+  "sample": {
+    "sample_name": "",
+    "material_type": "graphene",
+    "objective": "20x",
+    "camera": "AmScope MU1203-BI",
+    "operator": "Jason Zheng",
+    "notes": ""
+  },
+  "input": {
+    "raw_folder": "data/raw_tiles",
+    "raw_file_pattern": "{p}.jpg",
+    "corrected_file_pattern": "{p}_corrected.tif"
+  },
+  "stitching": {
+    "grid_size_x": 3,
+    "grid_size_y": 1,
+    "tile_overlap": 40,
+    "scan_order": "HORIZONTALCONTINUOUS",
+    "grid_origin": "UR",
+    "first_tile_index": 1
+  },
+  "detection": {
+    "roboflow_confidence": 0.5,
+    "roboflow_model_id": "grapheneflakes-72y6l-szuyj/2",
+    "tile_size": 1024,
+    "tile_overlap": 200
+  },
+  "publish": {
+    "mode": "new",
+    "sample_id": null
+  }
+}

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "graphene-pipeline"
+version = "0.1.0"
+description = "Graphene microscope image correction, stitching, detection, and publishing pipeline"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "opencv-python",
+    "pillow",
+    "requests",
+    "scikit-image",
+    "scipy",
+    "tifffile",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build",
+    "pytest",
+]
+
+[project.scripts]
+graphene-pipeline = "pipeline_core.stages.run_full_pipeline:main"
+graphene-pipeline-gui = "pipeline_core.app.gui.pipeline_gui:main"
+graphene-acquisition-gui = "pipeline_core.app.acquisition.acquisition_gui:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pipeline_core*"]
+
+[tool.setuptools]
+py-modules = ["config"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+pipeline_core = ["fiji_macros/*.ijm"]

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "samples": [
+    {
+      "id": "graphene_000001",
+      "path": "/samples/graphene_000001"
+    },
+    {
+      "id": "graphene_000002",
+      "path": "/samples/graphene_000002"
+    },
+    {
+      "id": "graphene_000003",
+      "path": "/samples/graphene_000003"
+    },
+    {
+      "id": "graphene_000004",
+      "path": "/samples/graphene_000004"
+    }
+  ]
+}

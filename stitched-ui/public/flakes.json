@@ -1,0 +1,111 @@
+{
+  "coordinate_system": "stitched_image_pixels",
+  "flake_count": 3,
+  "flake_count_before_deduplication": 7,
+  "tile_config_file": "TileConfiguration.registered.txt",
+  "missing_tiles_from_tile_config": [],
+  "flakes": [
+    {
+      "id": "flake_00001",
+      "x": 3144.37,
+      "y": 5862.2,
+      "label": "flake",
+      "confidence": 0.6399,
+      "bbox": {
+        "x": 3062,
+        "y": 5815,
+        "width": 165,
+        "height": 94
+      },
+      "polygon": [
+        [
+          3061.87,
+          5815.2
+        ],
+        [
+          3226.87,
+          5815.2
+        ],
+        [
+          3226.87,
+          5909.2
+        ],
+        [
+          3061.87,
+          5909.2
+        ]
+      ],
+      "source_tile": "10_graphene_20x_corrected.tif",
+      "tile_x": 783.5,
+      "tile_y": 2173.0
+    },
+    {
+      "id": "flake_00002",
+      "x": 7802.07,
+      "y": 4691.76,
+      "label": "unusable_flake",
+      "confidence": 0.4971,
+      "bbox": {
+        "x": 7765,
+        "y": 4656,
+        "width": 75,
+        "height": 72
+      },
+      "polygon": [
+        [
+          7764.57,
+          4655.76
+        ],
+        [
+          7839.57,
+          4655.76
+        ],
+        [
+          7839.57,
+          4727.76
+        ],
+        [
+          7764.57,
+          4727.76
+        ]
+      ],
+      "source_tile": "06_graphene_20x_corrected.tif",
+      "tile_x": 2993.5,
+      "tile_y": 2706.0
+    },
+    {
+      "id": "flake_00003",
+      "x": 7219.21,
+      "y": 4586.1,
+      "label": "unusable_flake",
+      "confidence": 0.4496,
+      "bbox": {
+        "x": 7155,
+        "y": 4551,
+        "width": 128,
+        "height": 70
+      },
+      "polygon": [
+        [
+          7155.21,
+          4551.1
+        ],
+        [
+          7283.21,
+          4551.1
+        ],
+        [
+          7283.21,
+          4621.1
+        ],
+        [
+          7155.21,
+          4621.1
+        ]
+      ],
+      "source_tile": "12_graphene_20x_corrected.tif",
+      "tile_x": 73.0,
+      "tile_y": 727.0
+    }
+  ]
+}
